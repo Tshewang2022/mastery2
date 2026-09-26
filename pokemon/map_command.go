@@ -38,3 +38,9 @@ func commandMapb(cfg *config) error {
 	}
 	return nil
 }
+
+// it takes this parameters;
+func findPoke(cfg *config) error {
+
+	return nil
+}
