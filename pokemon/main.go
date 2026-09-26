@@ -1,14 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"strings"
+	"time"
+
+	"github.com/pokemon/internal/pokeapi"
 )
 
 func main() {
-	fmt.Printf("Hello, World!")
-}
-
-func cleanInput(text string) []string {
-	return strings.Fields(text)
+	pokeAPI := pokeapi.NewClient(5 * time.Second)
+	cfg := &config{
+		commands:      getCommands(),
+		pokeapiClient: pokeAPI,
+	}
+	startRepl(cfg)
 }
