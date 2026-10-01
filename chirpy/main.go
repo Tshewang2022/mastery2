@@ -15,12 +15,11 @@ type config struct {
 
 func (cfg *config) handle() http.Handler {
 	mux := http.NewServeMux()
-	fileHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
-	mux.Handle("/app/", cfg.middlewareMetricsInc(fileHandler))
-	mux.HandleFunc("GET /metrics", cfg.handlerMetrics)
-	mux.HandleFunc("POST /reset", cfg.handlerReset)
+	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
+	mux.HandleFunc("GET /admin/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("POST /admin/reset", cfg.handlerReset)
 	mux.Handle("/assets", http.FileServer(http.Dir(".")))
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("Content-Type", "text/plain")
 		r.Header.Set("charset", "utf-8")
 		w.WriteHeader(http.StatusOK)
@@ -38,9 +37,17 @@ func (cfg *config) middlewareMetricsInc(next http.Handler) http.Handler {
 }
 
 func (cfg *config) handlerMetrics(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Hits: %d", cfg.fileserverHits.Load())
+	w.Write([]byte(fmt.Sprintf(`<html>
+		<body>
+			<h1>Welcome, Chirpy Admin</h1>
+			<p>Chirpy has been visited %d times!</p>
+		</body>
+
+		</html>
+			`,
+		cfg.fileserverHits.Load())))
 }
 func (cfg *config) handlerReset(w http.ResponseWriter, r *http.Request) {
 	cfg.fileserverHits.Store(0)
