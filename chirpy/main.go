@@ -1,23 +1,33 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
 	"time"
+
+	// importing it for the side effects
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/nado/chirpy/internal/database"
 )
 
 type config struct {
 	addr           string
 	fileserverHits atomic.Int32
+	queries        *database.Queries
 }
 
+// Register function is getting confined to the return type of handle func
 func (cfg *config) handle() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
 	mux.HandleFunc("GET /admin/metrics", cfg.handlerMetrics)
-	mux.HandleFunc("POST /admin/reset", cfg.handlerReset)
+	mux.HandleFunc("POST /admin/reset", cfg.Delete)
+	mux.HandleFunc("POST /api/users", cfg.Register)
 	mux.HandleFunc("POST /api/validate_chirp", handlerChirpsValidate)
 	mux.Handle("/assets", http.FileServer(http.Dir(".")))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +67,23 @@ func (cfg *config) handlerReset(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hits reset to 0"))
 }
 func main() {
-	cfg := &config{addr: ":8080"}
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("error loading .env: %v", err)
+	}
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("Must set db url")
+	}
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Error starting database: %s", err)
+	}
+	dbQueries := database.New(db)
+
+	cfg := &config{
+		addr:    ":8080",
+		queries: dbQueries,
+	}
 
 	// final code that runs is this one;
 	s := &http.Server{
