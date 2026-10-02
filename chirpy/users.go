@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/google/uuid"
+	"github.com/nado/chirpy/internal/auth"
 	"github.com/nado/chirpy/internal/database"
 )
 
@@ -23,6 +23,11 @@ type User struct {
 type createUserPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"hash_password"`
+}
+
+type loginPayload struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 // this function returns a user, configs contains, addr and *database.Queries
@@ -40,7 +45,7 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON body", err)
 		return
 	}
-	hash, err := argon2id.CreateHash(payload.Password, argon2id.DefaultParams)
+	hash, err := auth.HashPassword(payload.Password)
 
 	dbUser, err := cfg.queries.CreateUser(ctx, database.CreateUserParams{
 		Email:          payload.Email,
@@ -59,7 +64,43 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
-	// will take password and email from the r.Body;
+
+	type parameters struct {
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+	type response struct {
+		User
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
+	user, err := cfg.queries.GetUserByEmail(r.Context(), params.Email)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
+		return
+	}
+
+	match, err := auth.CheckPasswordHash(params.Password, user.HashedPassword)
+	if err != nil || !match {
+		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:        user.ID,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+	})
 }
 
 func (cfg *config) Delete(w http.ResponseWriter, r *http.Request) {
