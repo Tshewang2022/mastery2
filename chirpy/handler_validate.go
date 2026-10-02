@@ -1,48 +1,107 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/nado/chirpy/internal/database"
 )
 
-func handlerChirpsValidate(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Body string `json:"body"`
-	}
-	type returnVals struct {
-		Valid       bool   `json:"valid"`
-		CleanedBody string `json:"cleaned_body"`
-	}
+type Chirp struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	Body      string    `json:"body"`
+}
+type parameters struct {
+	Body   string    `json:"body"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (cfg *config) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
+	var payload parameters
+	err := decoder.Decode(&payload)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
 	}
 
-	const maxChirpLength = 140
-	if len(params.Body) > maxChirpLength {
-		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
+	cleaned, err := validateChirp(payload.Body)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, returnVals{CleanedBody: cleanBody(params.Body)})
+	chirp, err := cfg.queries.CreateChirpy(r.Context(), database.CreateChirpyParams{
+		Body:   cleaned,
+		UserID: payload.UserID,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, Chirp{
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
+	})
 }
 
-func cleanBody(body string) string {
+func validateChirp(body string) (string, error) {
+	const maxChirpLength = 140
+	if len(body) > maxChirpLength {
+		return "", errors.New("Chirp is too long")
+	}
+
 	badWords := map[string]struct{}{
 		"kerfuffle": {},
 		"sharbert":  {},
 		"fornax":    {},
 	}
+	cleaned := getCleanedBody(body, badWords)
+	return cleaned, nil
+}
+
+func getCleanedBody(body string, badWords map[string]struct{}) string {
 	words := strings.Split(body, " ")
 	for i, word := range words {
-		if _, bad := badWords[strings.ToLower(word)]; bad {
+		loweredWord := strings.ToLower(word)
+		if _, ok := badWords[loweredWord]; ok {
 			words[i] = "****"
 		}
 	}
-	return strings.Join(words, " ")
+	cleaned := strings.Join(words, " ")
+	return cleaned
+}
+
+func (cfg *config) GetChirps(w http.ResponseWriter, r *http.Request) {
+	dbChirps, err := cfg.queries.GetChirps(context.Background())
+	// wont compile because of the return type
+	if err != nil {
+		return
+	}
+	chirps := make([]Chirp, 0, len(dbChirps))
+	for _, c := range dbChirps {
+		chirps = append(chirps, Chirp{
+			ID:        c.ID,
+			CreatedAt: c.CreatedAt,
+			UpdatedAt: c.UpdatedAt,
+			Body:      c.Body,
+			UserID:    c.UserID,
+		})
+	}
+
+	respondWithJSON(w, http.StatusOK, chirps)
+
 }
