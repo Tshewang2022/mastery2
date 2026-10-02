@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/google/uuid"
+	"github.com/nado/chirpy/internal/database"
 )
 
 type User struct {
@@ -19,7 +21,8 @@ type User struct {
 }
 
 type createUserPayload struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
+	Password string `json:"hash_password"`
 }
 
 // this function returns a user, configs contains, addr and *database.Queries
@@ -37,8 +40,12 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON body", err)
 		return
 	}
+	hash, err := argon2id.CreateHash(payload.Password, argon2id.DefaultParams)
 
-	dbUser, err := cfg.queries.CreateUser(ctx, payload.Email)
+	dbUser, err := cfg.queries.CreateUser(ctx, database.CreateUserParams{
+		Email:          payload.Email,
+		HashedPassword: hash,
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create user", err)
 		return
@@ -49,6 +56,10 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: dbUser.UpdatedAt,
 		Email:     dbUser.Email,
 	})
+}
+
+func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
+	// will take password and email from the r.Body;
 }
 
 func (cfg *config) Delete(w http.ResponseWriter, r *http.Request) {

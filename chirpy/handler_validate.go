@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -21,8 +21,9 @@ type Chirp struct {
 	Body      string    `json:"body"`
 }
 type parameters struct {
-	Body   string    `json:"body"`
-	UserID uuid.UUID `json:"user_id"`
+	Body     string    `json:"body"`
+	UserID   uuid.UUID `json:"user_id"`
+	Password string    `json:"password"`
 }
 
 func (cfg *config) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
@@ -108,22 +109,27 @@ func (cfg *config) GetChirps(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *config) handlerGetChirpsByID(w http.ResponseWriter, r *http.Request) {
-	userID, err := uuid.Parse(r.PathValue("chirpID"))
+	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {
-		fmt.Println("Could not get user id %w", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid chirp ID", err)
 		return
 	}
-	user, err := cfg.queries.GetChirpsByID(r.Context(), userID)
 
+	chirp, err := cfg.queries.GetChirpsByID(r.Context(), chirpID)
 	if err != nil {
-		fmt.Println("Could not fetch user from the db %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			respondWithError(w, http.StatusNotFound, "Chirp not found", err)
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "Couldn't retrieve chirp", err)
 		return
 	}
+
 	respondWithJSON(w, http.StatusOK, Chirp{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Body:      user.Body,
-		UserID:    user.UserID,
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
 	})
 }

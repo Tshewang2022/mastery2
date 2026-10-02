@@ -29,7 +29,9 @@ func (cfg *config) handle() http.Handler {
 	mux.HandleFunc("POST /admin/reset", cfg.Delete)
 	mux.HandleFunc("POST /api/users", cfg.Register)
 	mux.HandleFunc("POST /api/chirps", cfg.handlerChirpsCreate)
+	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.handlerGetChirpsByID)
 	mux.HandleFunc("GET /api/chirps", cfg.GetChirps)
+	mux.HandleFunc("POST /api/login", cfg.handleLogin)
 
 	mux.Handle("/assets", http.FileServer(http.Dir(".")))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) {
