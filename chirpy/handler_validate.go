@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -104,4 +105,25 @@ func (cfg *config) GetChirps(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, chirps)
 
+}
+
+func (cfg *config) handlerGetChirpsByID(w http.ResponseWriter, r *http.Request) {
+	userID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		fmt.Println("Could not get user id %w", err)
+		return
+	}
+	user, err := cfg.queries.GetChirpsByID(r.Context(), userID)
+
+	if err != nil {
+		fmt.Println("Could not fetch user from the db %w", err)
+		return
+	}
+	respondWithJSON(w, http.StatusOK, Chirp{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Body:      user.Body,
+		UserID:    user.UserID,
+	})
 }
