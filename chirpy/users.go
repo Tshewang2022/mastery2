@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -14,15 +13,17 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 type createUserPayload struct {
 	Email    string `json:"email"`
-	Password string `json:"hash_password"`
+	Password string `json:"password"`
 }
 
 type loginPayload struct {
@@ -32,22 +33,23 @@ type loginPayload struct {
 
 // this function returns a user, configs contains, addr and *database.Queries
 func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "could not read request body", err)
-		return
-	}
-
 	var payload createUserPayload
-	if err := json.Unmarshal(body, &payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON body", err)
 		return
 	}
-	hash, err := auth.HashPassword(payload.Password)
+	if payload.Email == "" || payload.Password == "" {
+		respondWithError(w, http.StatusBadRequest, "email and password are required", nil)
+		return
+	}
 
-	dbUser, err := cfg.queries.CreateUser(ctx, database.CreateUserParams{
+	hash, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not hash password", err)
+		return
+	}
+
+	dbUser, err := cfg.queries.CreateUser(r.Context(), database.CreateUserParams{
 		Email:          payload.Email,
 		HashedPassword: hash,
 	})
@@ -55,6 +57,7 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "could not create user", err)
 		return
 	}
+
 	respondWithJSON(w, http.StatusCreated, User{
 		ID:        dbUser.ID,
 		CreatedAt: dbUser.CreatedAt,
@@ -65,13 +68,16 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
 
+	// getauthorization header should be used here
 	type parameters struct {
 		Password string `json:"password"`
 		Email    string `json:"email"`
+		ExpInSec int    `json:"expires_in_seconds"`
 	}
 	type response struct {
 		User
 	}
+	ctx := r.Context()
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
@@ -81,7 +87,7 @@ func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := cfg.queries.GetUserByEmail(r.Context(), params.Email)
+	user, err := cfg.queries.GetUserByEmail(ctx, params.Email)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
 		return
@@ -92,13 +98,96 @@ func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
 		return
 	}
+	expiresIn := time.Hour
+	if params.ExpInSec > 0 {
+		requested := time.Duration(params.ExpInSec) * time.Second
+		if requested < expiresIn {
+			expiresIn = requested
+		}
+	}
+	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, expiresIn)
+	if err != nil {
+		respondWithError(w, http.StatusNotImplemented, "Could not generate a token", err)
+		return
+	}
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get refresh token", err)
+		return
+	}
+
+	_, err = cfg.queries.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		UserID:    user.ID,
+		ExpiresAt: time.Now().UTC().Add(60 * 24 * time.Hour),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't save refresh token", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:           user.ID,
+			Email:        user.Email,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+			Token:        token,
+			RefreshToken: refreshToken,
+		},
+	})
+}
+
+func (cfg *config) handlerUsersUpdate(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+	type response struct {
+		User
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Couldn't find JWT", err)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err = decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
+		return
+	}
+
+	user, err := cfg.queries.UpdateUser(r.Context(), database.UpdateUserParams{
+		ID:             userID,
+		Email:          params.Email,
+		HashedPassword: hashedPassword,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't update user", err)
+		return
+	}
 
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
 			ID:        user.ID,
-			Email:     user.Email,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
 		},
 	})
 }
