@@ -29,3 +29,15 @@ RETURNING *;
 -- name: DeleteChirp :exec
 DELETE FROM chirps
 WHERE id = $1 AND user_id = $2;
+
+-- name: UpgradeUserToChirpyRed :one
+UPDATE users
+SET is_chirpy_red = true,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: GetChirpsByAuthor :many
+SELECT * FROM chirps
+WHERE user_id = $1
+ORDER BY created_at ASC;

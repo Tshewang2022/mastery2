@@ -20,6 +20,7 @@ type config struct {
 	fileserverHits atomic.Int32
 	queries        *database.Queries
 	jwtSecret      string
+	chirpyKey      string
 }
 
 // Register function is getting confined to the return type of handle func
@@ -32,11 +33,12 @@ func (cfg *config) handle() http.Handler {
 	mux.HandleFunc("POST /api/chirps", cfg.handlerChirpsCreate)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.handlerGetChirpsByID)
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", cfg.handlerChirpsDelete)
-	mux.HandleFunc("GET /api/chirps", cfg.GetChirps)
+	mux.HandleFunc("GET /api/chirps", cfg.handlerChirpsGet)
 	mux.HandleFunc("POST /api/login", cfg.handleLogin)
 	mux.HandleFunc("POST /api/refresh", cfg.Refresh)
 	mux.HandleFunc("POST /api/revoke", cfg.RevokeRefreshTokens)
 	mux.HandleFunc("PUT /api/users", cfg.handlerUsersUpdate)
+	mux.HandleFunc("POST /api/polka/webhooks", cfg.handlerPolkaWebhooks)
 
 	mux.Handle("/assets", http.FileServer(http.Dir(".")))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -91,12 +93,18 @@ func main() {
 	if secret == "" {
 		log.Fatal("Must set jwt secret")
 	}
+
+	chirpyKey := os.Getenv("POLKA_KEY")
+	if chirpyKey == "" {
+		log.Fatal("Must set chirpy key")
+	}
 	dbQueries := database.New(db)
 
 	cfg := &config{
 		addr:      ":8080",
 		queries:   dbQueries,
 		jwtSecret: secret,
+		chirpyKey: chirpyKey,
 	}
 
 	// final code that runs is this one;

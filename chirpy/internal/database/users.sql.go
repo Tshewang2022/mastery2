@@ -36,7 +36,7 @@ func (q *Queries) CreateChirpy(ctx context.Context, arg CreateChirpyParams) (Chi
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, email, hashed_password)
-VALUES (gen_random_uuid(), NOW(), NOW(),$1, $2) RETURNING id, created_at, updated_at, email, hashed_password
+VALUES (gen_random_uuid(), NOW(), NOW(),$1, $2) RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type CreateUserParams struct {
@@ -53,6 +53,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -114,6 +115,41 @@ func (q *Queries) GetChirps(ctx context.Context) ([]Chirp, error) {
 	return items, nil
 }
 
+const getChirpsByAuthor = `-- name: GetChirpsByAuthor :many
+SELECT id, created_at, updated_at, body, user_id FROM chirps
+WHERE user_id = $1
+ORDER BY created_at ASC
+`
+
+func (q *Queries) GetChirpsByAuthor(ctx context.Context, userID uuid.UUID) ([]Chirp, error) {
+	rows, err := q.db.QueryContext(ctx, getChirpsByAuthor, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Chirp
+	for rows.Next() {
+		var i Chirp
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Body,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getChirpsByID = `-- name: GetChirpsByID :one
 SELECT id, created_at, updated_at, body, user_id FROM chirps WHERE id = $1
 `
@@ -132,7 +168,7 @@ func (q *Queries) GetChirpsByID(ctx context.Context, id uuid.UUID) (Chirp, error
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, updated_at, email, hashed_password FROM users WHERE email = $1
+SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -144,6 +180,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -154,7 +191,7 @@ SET email = $2,
     hashed_password = $3,
     updated_at = NOW() AT TIME ZONE 'UTC'
 WHERE id = $1
-RETURNING id, created_at, updated_at, email, hashed_password
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type UpdateUserParams struct {
@@ -172,6 +209,29 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
+	)
+	return i, err
+}
+
+const upgradeUserToChirpyRed = `-- name: UpgradeUserToChirpyRed :one
+UPDATE users
+SET is_chirpy_red = true,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
+`
+
+func (q *Queries) UpgradeUserToChirpyRed(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, upgradeUserToChirpyRed, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }

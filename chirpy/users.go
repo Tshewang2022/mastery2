@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,6 +22,7 @@ type User struct {
 	Email        string    `json:"email"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 
 type createUserPayload struct {
@@ -59,10 +63,11 @@ func (cfg *config) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, User{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
-		Email:     dbUser.Email,
+		ID:          dbUser.ID,
+		CreatedAt:   dbUser.CreatedAt,
+		UpdatedAt:   dbUser.UpdatedAt,
+		Email:       dbUser.Email,
+		IsChirpyRed: dbUser.IsChirpyRed,
 	})
 }
 
@@ -134,6 +139,7 @@ func (cfg *config) handleLogin(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt:    user.UpdatedAt,
 			Token:        token,
 			RefreshToken: refreshToken,
+			IsChirpyRed:  user.IsChirpyRed,
 		},
 	})
 }
@@ -197,4 +203,43 @@ func (cfg *config) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Printf("Cannot delete a user %s", err)
 	}
+}
+
+// handler_polka_webhooks.go
+func (cfg *config) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil || subtle.ConstantTimeCompare([]byte(apiKey), []byte(cfg.chirpyKey)) != 1 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	type parameters struct {
+		Event string `json:"event"`
+		Data  struct {
+			UserID uuid.UUID `json:"user_id"`
+		} `json:"data"`
+	}
+
+	params := parameters{}
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if params.Event != "user.upgraded" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	_, err = cfg.queries.UpgradeUserToChirpyRed(r.Context(), params.Data.UserID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

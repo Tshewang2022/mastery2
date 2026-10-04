@@ -1,11 +1,11 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -103,25 +103,51 @@ func getCleanedBody(body string, badWords map[string]struct{}) string {
 	return cleaned
 }
 
-func (cfg *config) GetChirps(w http.ResponseWriter, r *http.Request) {
-	dbChirps, err := cfg.queries.GetChirps(context.Background())
-	// wont compile because of the return type
+func (cfg *config) handlerChirpsGet(w http.ResponseWriter, r *http.Request) {
+	var dbChirps []database.Chirp
+	var err error
+
+	authorIDString := r.URL.Query().Get("author_id")
+	if authorIDString != "" {
+		authorID, parseErr := uuid.Parse(authorIDString)
+		if parseErr != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid author_id", parseErr)
+			return
+		}
+		dbChirps, err = cfg.queries.GetChirpsByAuthor(r.Context(), authorID)
+	} else {
+		dbChirps, err = cfg.queries.GetChirps(r.Context())
+	}
 	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't retrieve chirps", err)
 		return
 	}
+
+	sortDirection := r.URL.Query().Get("sort")
+	if sortDirection != "" && sortDirection != "asc" && sortDirection != "desc" {
+		respondWithError(w, http.StatusBadRequest, "sort must be 'asc' or 'desc'", nil)
+		return
+	}
+
 	chirps := make([]Chirp, 0, len(dbChirps))
-	for _, c := range dbChirps {
+	for _, dbChirp := range dbChirps {
 		chirps = append(chirps, Chirp{
-			ID:        c.ID,
-			CreatedAt: c.CreatedAt,
-			UpdatedAt: c.UpdatedAt,
-			Body:      c.Body,
-			UserID:    c.UserID,
+			ID:        dbChirp.ID,
+			CreatedAt: dbChirp.CreatedAt,
+			UpdatedAt: dbChirp.UpdatedAt,
+			UserID:    dbChirp.UserID,
+			Body:      dbChirp.Body,
 		})
 	}
 
-	respondWithJSON(w, http.StatusOK, chirps)
+	sort.Slice(chirps, func(i, j int) bool {
+		if sortDirection == "desc" {
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		}
+		return chirps[i].CreatedAt.Before(chirps[j].CreatedAt)
+	})
 
+	respondWithJSON(w, http.StatusOK, chirps)
 }
 
 func (cfg *config) handlerGetChirpsByID(w http.ResponseWriter, r *http.Request) {
