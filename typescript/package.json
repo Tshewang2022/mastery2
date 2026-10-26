@@ -1,0 +1,11 @@
+{
+  "name": "blob-to-image-cli",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5"
+  }
+}
