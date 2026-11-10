@@ -74,5 +74,4 @@ func main() {
 	tree.insertNode(9)
 	tree.insertNode(90)
 	tree.printNode()
-
 }
