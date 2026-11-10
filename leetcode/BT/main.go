@@ -85,7 +85,7 @@ func (node *Head) binaryTree(val int) {
 	}
 
 	curr := node.root
-	if curr.val < val {
+	if curr.val > val {
 		if curr.left == nil {
 			curr.left = newNode
 			return
@@ -100,9 +100,49 @@ func (node *Head) binaryTree(val int) {
 	}
 }
 
+// printing of binary node
+func inorder(n *Node) {
+	if n == nil {
+		return
+	}
+	inorder(n.left)
+	fmt.Print(n.val, " ")
+	inorder(n.right)
+}
+
+func preorder(n *Node) {
+	if n == nil {
+		return
+	}
+	fmt.Print(n.val, " ")
+	preorder(n.left)
+	inorder(n.right)
+}
+
+func postorder(n *Node) {
+	if n == nil {
+		return
+	}
+	postorder(n.left)
+	postorder(n.right)
+	fmt.Print(n.val, " ")
+}
 func main() {
 	tree := &Head{}
-	tree.insertNode(9)
-	tree.insertNode(90)
-	tree.printNode()
+	tree.binaryTree(9)
+	tree.binaryTree(56)
+	tree.binaryTree(4)
+	// tree.insertNode(9)
+	preorder(tree.root)
+	// inorder(tree.root)
+	// postorder(tree.root)
+	// tree.insertNode(90)
+	// tree.printNode()
 }
+
+// needs to get down really to the fundemental property
+// how does the args passing methods works and how does the conditions executed
+// by value or by references, bridging the gap between impl and concepts
+// most think we know, but in practical impl we dont really know;
+// how does the function calls and code are being executed in the computer level
+// this will really helps streamline the thought process with code logic in computer level
