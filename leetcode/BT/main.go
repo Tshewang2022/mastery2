@@ -12,6 +12,8 @@ type Head struct {
 	root *Node
 }
 
+// this is how the node works;
+
 func (node *Head) insertNode(val int) {
 	newNode := &Node{
 		val: val,
@@ -30,6 +32,7 @@ func (node *Head) insertNode(val int) {
 	node.root = newNode
 }
 
+// linked list
 func (node *Head) middleInsert(val int, position int) {
 
 	if position <= 0 || node.root == nil {
@@ -67,6 +70,34 @@ func (node *Head) printNode() {
 	// len is only for the arrays and map
 	fmt.Println()
 
+}
+
+// need to have a rotation;
+
+// how can we construct binary tree;
+func (node *Head) binaryTree(val int) {
+	newNode := &Node{val: val}
+	// root node;
+	if node.root == nil {
+		// root node;
+		node.root = newNode
+		return
+	}
+
+	curr := node.root
+	if curr.val < val {
+		if curr.left == nil {
+			curr.left = newNode
+			return
+		}
+		curr = curr.left
+	} else {
+		if curr.right == nil {
+			curr.right = newNode
+			return
+		}
+		curr = curr.right
+	}
 }
 
 func main() {
