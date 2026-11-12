@@ -128,16 +128,51 @@ func postorder(n *Node) {
 	fmt.Print(n.val, " ")
 }
 func main() {
-	tree := &Head{}
-	tree.binaryTree(9)
-	tree.binaryTree(56)
-	tree.binaryTree(4)
-	// tree.insertNode(9)
-	preorder(tree.root)
-	// inorder(tree.root)
-	// postorder(tree.root)
-	// tree.insertNode(90)
-	// tree.printNode()
+	// tree := &Head{}
+	// tree.binaryTree(9)
+	// tree.binaryTree(56)
+	// tree.binaryTree(4)
+	// // tree.insertNode(9)
+	// preorder(tree.root)
+	// // inorder(tree.root)
+	// // postorder(tree.root)
+	// // tree.insertNode(90)
+	// // tree.printNode()
+	// fmt.Println()
+
+	// ---- isBalanced checks ----
+
+	//     2
+	//    / \
+	//   1   3
+	// balanced := &TreeNode{val: 2,
+	// 	left:  &TreeNode{val: 1},
+	// 	right: &TreeNode{val: 3},
+	// }
+
+	//   1
+	//    \
+	//     2
+	//      \
+	//       3
+	skewed := &TreeNode{val: 1,
+		right: &TreeNode{val: 2,
+			right: &TreeNode{val: 3},
+		},
+	}
+
+	// root looks fine (height 3 vs 3), but each side is a chain
+	//         1
+	//        / \
+	//       2   5
+	//      /     \
+	//     3       6
+	//    /         \
+	//   4           7
+
+	// fmt.Println("balanced:", isBalanced(balanced)) // true
+	fmt.Println("sweked:", isBalanced(skewed))
+
 }
 
 // needs to get down really to the fundemental property
@@ -146,3 +181,5 @@ func main() {
 // most think we know, but in practical impl we dont really know;
 // how does the function calls and code are being executed in the computer level
 // this will really helps streamline the thought process with code logic in computer level
+
+// today i will train like a champion;
