@@ -43,8 +43,35 @@ func height(root *TreeNode) int {
 	right_h := height(root.right)
 	fmt.Printf("  node %d: right_h = %d\n", root.val, right_h)
 
-	h := max(left_h, right_h) + 1 
+	h := max(left_h, right_h) + 1
 	// fmt.Printf("return node %d: height = %d\n", root.val, h)
 	return h
 
+}
+
+// working on the insert
+
+func insertNode(root *TreeNode, val int) *TreeNode {
+
+	if root == nil {
+		return &TreeNode{val: val}
+	}
+
+	if val < root.val {
+		root.left = insertNode(root.left, val)
+	} else {
+		root.right = insertNode(root.right, val)
+	}
+	return root
+
+}
+
+func inorders(n *TreeNode) {
+
+	if n == nil {
+		return
+	}
+	inorders(n.left)
+	fmt.Print(n.val, " ")
+	inorders(n.right)
 }
