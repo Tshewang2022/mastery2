@@ -127,7 +127,7 @@ func postorder(n *Node) {
 	postorder(n.right)
 	fmt.Print(n.val, " ")
 }
-func main() {
+func main() {  
 	// tree := &Head{}
 	// tree.binaryTree(9)
 	// tree.binaryTree(56)

@@ -34,17 +34,11 @@ func height(root *TreeNode) int {
 	if root == nil {
 		return 0
 	}
-	fmt.Printf("enter node %d\n", root.val)
-
 	// here it computes only the height;
-	left_h := height(root.left)
-	fmt.Printf("  node %d: left_h  = %d\n", root.val, left_h)
+	left_h := height(root.left) + 1
+	right_h := height(root.right) + 1
 
-	right_h := height(root.right)
-	fmt.Printf("  node %d: right_h = %d\n", root.val, right_h)
-
-	h := max(left_h, right_h) + 1
-	// fmt.Printf("return node %d: height = %d\n", root.val, h)
+	h := max(left_h, right_h)
 	return h
 
 }
@@ -74,4 +68,44 @@ func inorders(n *TreeNode) {
 	inorders(n.left)
 	fmt.Print(n.val, " ")
 	inorders(n.right)
+}
+
+// rotation; all this concepts of rotations are just the concepts of the swaping between
+// state variables, simple as that;
+func rightRotation(root *TreeNode) *TreeNode {
+	current := root.left
+	root.left = current.right
+	current.right = root
+	return root
+}
+
+func leftRotation(root *TreeNode) *TreeNode {
+	current := root.right
+	root.right = current.left
+	current.left = root
+	return root
+}
+
+func insertBalancedTree(root *TreeNode, val int) *TreeNode {
+	newNode := &TreeNode{val: val}
+
+	if root == nil {
+		root = newNode
+	}
+	if val < root.val {
+		root.left = insertBalancedTree(root.left, val)
+		if isBalanced(root.left) == false {
+			// performs rotations;
+			rotation(root.left)
+		}
+
+	} else {
+		root.right = insertBalancedTree(root.right, val)
+		if isBalanced(root.right) == false {
+			// performs rotations
+			rotation(root.right)
+		}
+	}
+	return root
+
 }
