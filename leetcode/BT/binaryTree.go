@@ -122,12 +122,55 @@ func findTargetSum(targetSum int, root *TreeNode) bool {
 		return targetSum == 0
 	}
 
-	leftSum:= findTargetSum(targetSum, root.left);
-	rightSum:= findTargetSum(targetSum, root.right)
+	leftSum := findTargetSum(targetSum, root.left)
+	rightSum := findTargetSum(targetSum, root.right)
 
 	if leftSum == false && rightSum == false {
 		return false
 	}
 
-	return true;
+	return true
+}
+
+func invertTree(root *TreeNode) *TreeNode {
+	if root == nil {
+		return nil
+	}
+
+	// just need to swap the children;
+	current := root.left
+	root.left = root.right
+	root.right = current
+
+	invertTree(root.left)
+	invertTree(root.right)
+
+	return root
+
+}
+
+func levelOrderTraversal(root *TreeNode) {
+	if root == nil {
+		return
+	}
+
+	// need to write the implmentation of queue
+	// when the queue is not empty;
+	q := &Queue[*TreeNode]{}
+	q.Enqueue(root)
+
+	for !q.IsEmpty() {
+		root, _ := q.Dequeue()
+		fmt.Print(root.val, " ")
+		if root.left != nil {
+			q.Enqueue(root.left)
+		}
+
+		if root.right != nil {
+			q.Enqueue(root.right)
+		}
+	}
+
+	fmt.Println()
+
 }
