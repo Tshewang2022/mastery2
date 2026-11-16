@@ -86,26 +86,48 @@ func leftRotation(root *TreeNode) *TreeNode {
 	return root
 }
 
-func insertBalancedTree(root *TreeNode, val int) *TreeNode {
-	newNode := &TreeNode{val: val}
+// func insertBalancedTree(root *TreeNode, val int) *TreeNode {
+// 	newNode := &TreeNode{val: val}
 
+// 	if root == nil {
+// 		root = newNode
+// 	}
+// 	if val < root.val {
+// 		root.left = insertBalancedTree(root.left, val)
+// 		if isBalanced(root.left) == false {
+// 			// performs rotations;
+// 			rotation(root.left)
+// 		}
+
+// 	} else {
+// 		root.right = insertBalancedTree(root.right, val)
+// 		if isBalanced(root.right) == false {
+// 			// performs rotations
+// 			rotation(root.right)
+// 		}
+// 	}
+// 	return root
+
+// }
+
+func findTargetSum(targetSum int, root *TreeNode) bool {
+	// this is going to be another base case
 	if root == nil {
-		root = newNode
+		return false
 	}
-	if val < root.val {
-		root.left = insertBalancedTree(root.left, val)
-		if isBalanced(root.left) == false {
-			// performs rotations;
-			rotation(root.left)
-		}
 
-	} else {
-		root.right = insertBalancedTree(root.right, val)
-		if isBalanced(root.right) == false {
-			// performs rotations
-			rotation(root.right)
-		}
+	targetSum -= root.val
+
+	if root.left == nil && root.right == nil {
+		return targetSum == 0
 	}
-	return root
 
+	leftSum:= findTargetSum(targetSum, root.left);
+	rightSum:= findTargetSum(targetSum, root.right)
+
+	if leftSum == false && rightSum == false {
+		return false
+	}
+
+	return true;
 }
