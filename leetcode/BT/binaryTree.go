@@ -211,11 +211,59 @@ func returnSlice(val int) []int {
 
 func sumOfLeftLeaves(root *TreeNode) int {
 
+	sum := 0
 	if root == nil {
 		return 0
 	}
-	
 
-	return 0;
+	if root.left != nil && root.left.left == nil && root.left.right == nil {
+		sum += root.left.val
+	}
 
+	// this means it has reached leave node
+	sum += sumOfLeftLeaves(root.right)
+	sum += sumOfLeftLeaves(root.left)
+
+	return sum
+
+}
+
+func findMode(root *TreeNode) []int {
+	var mode []int
+	var prev *TreeNode
+	currentCount, maxCount := 0, 0
+
+	var inorder func(node *TreeNode)
+
+	inorder = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+
+		inorder(node.left)
+
+		if prev != nil && prev.val == node.val {
+			currentCount++
+		} else {
+			currentCount = 1
+		}
+
+		if currentCount > maxCount {
+			maxCount = currentCount
+			mode = []int{node.val}
+
+		} else if currentCount == maxCount {
+			mode = append(mode, node.val)
+		}
+
+		prev = node
+	}
+	inorder(root)
+
+	return mode
+}
+
+func getMinimumDifference(root *TreeNode) int {
+
+	return 0
 }
