@@ -175,23 +175,22 @@ func levelOrderTraversal(root *TreeNode) {
 
 }
 
-func binaryTreePaths(root *TreeNode) []string {
-	if root == nil {
-		return nil
-	}
-	
+// func binaryTreePaths(root *TreeNode) []string {
+// 	if root == nil {
+// 		return nil
+// 	}
 
-	if root.left != nil {
-		binaryTreePaths(root.left)
-	}
+// 	if root.left != nil {
+// 		binaryTreePaths(root.left)
+// 	}
 
-	if root.right != nil {
-		binaryTreePaths(root.right)
-	}
+// 	if root.right != nil {
+// 		binaryTreePaths(root.right)
+// 	}
 
-	return
+// 	return
 
-}
+// }
 func returnSlice(val int) []int {
 	if val != 0 {
 		return []int{val}
