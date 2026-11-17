@@ -264,6 +264,29 @@ func findMode(root *TreeNode) []int {
 }
 
 func getMinimumDifference(root *TreeNode) int {
+	var minDiff int
+	var prev *TreeNode
+	var inorder func(node *TreeNode)
 
-	return 0
+	inorder = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+		inorder(node.left)
+
+		if prev != nil {
+			diff := node.val - prev.val
+			if diff < minDiff {
+				minDiff = diff
+			}
+		}
+
+		prev = node
+		inorder(node.right)
+	}
+	inorder(root)
+
+	return minDiff
 }
+
+
