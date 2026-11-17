@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type TreeNode struct {
 	val   int
@@ -175,25 +178,44 @@ func levelOrderTraversal(root *TreeNode) {
 
 }
 
-// func binaryTreePaths(root *TreeNode) []string {
-// 	if root == nil {
-// 		return nil
-// 	}
+func binaryTreePaths(root *TreeNode) []string {
 
-// 	if root.left != nil {
-// 		binaryTreePaths(root.left)
-// 	}
+	var result []string
 
-// 	if root.right != nil {
-// 		binaryTreePaths(root.right)
-// 	}
+	if root == nil {
+		return result
+	}
 
-// 	return
+	if root.left == nil && root.right == nil {
+		return []string{strconv.Itoa(root.val)}
+	}
 
-// }
+	for _, p := range binaryTreePaths(root.left) {
+		result = append(result, strconv.Itoa(root.val)+"->"+p)
+	}
+
+	for _, p := range binaryTreePaths(root.right) {
+		result = append(result, strconv.Itoa(root.val)+"->"+p)
+	}
+
+	return result
+
+}
+
 func returnSlice(val int) []int {
 	if val != 0 {
 		return []int{val}
 	}
 	return nil
+}
+
+func sumOfLeftLeaves(root *TreeNode) int {
+
+	if root == nil {
+		return 0
+	}
+	
+
+	return 0;
+
 }
