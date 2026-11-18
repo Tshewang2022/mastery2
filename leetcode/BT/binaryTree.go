@@ -289,4 +289,28 @@ func getMinimumDifference(root *TreeNode) int {
 	return minDiff
 }
 
+func diameterOfBinaryTree(root *TreeNode) int {
+	maxDiameter := 0
 
+	var height func(node *TreeNode) int
+	height = func(node *TreeNode) int {
+		if node == nil {
+			return 0
+		}
+
+		left := height(root.left)
+		right := height(root.right)
+
+		// this is the main logic of the code;
+		if left+right > maxDiameter {
+			maxDiameter = left + right
+		}
+
+		if right > left {
+			return right + 1
+		}
+		return left + 1
+	}
+	height(root)
+	return maxDiameter
+}
