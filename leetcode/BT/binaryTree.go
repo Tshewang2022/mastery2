@@ -314,3 +314,24 @@ func diameterOfBinaryTree(root *TreeNode) int {
 	height(root)
 	return maxDiameter
 }
+
+// need to find this algorithm myself
+
+func findTilt(root *TreeNode) int {
+	tiltSum := 0
+	var tilt func(node *TreeNode) int
+	tilt = func(node *TreeNode) int {
+		if node == nil {
+			return 0
+		}
+		leftSum := tilt(node.left)
+		rightSum := tilt(node.right)
+		diff := abs(leftSum, rightSum)
+		tiltSum += diff
+		return leftSum + rightSum + node.val
+
+	}
+	tilt(root)
+	return tiltSum
+
+}
