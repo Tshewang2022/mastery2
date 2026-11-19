@@ -335,3 +335,21 @@ func findTilt(root *TreeNode) int {
 	return tiltSum
 
 }
+
+func mergeTrees(root1 *TreeNode, root2 *TreeNode) *TreeNode {
+
+	if root1 == nil {
+		return root2
+	}
+
+	if root2 == nil {
+		return root1
+	}
+
+	merged := &TreeNode{val: root1.val + root2.val}
+	merged.left = mergeTrees(root1.left, root2.right)
+	merged.right = mergeTrees(root1.right, root2.right)
+	
+	return merged
+
+}
