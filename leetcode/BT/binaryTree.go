@@ -349,7 +349,107 @@ func mergeTrees(root1 *TreeNode, root2 *TreeNode) *TreeNode {
 	merged := &TreeNode{val: root1.val + root2.val}
 	merged.left = mergeTrees(root1.left, root2.right)
 	merged.right = mergeTrees(root1.right, root2.right)
-	
+
 	return merged
+
+}
+
+// need to solve 4 problems today;
+
+func averageOfLevels(root *TreeNode) []float64 {
+	var avgValNode []float64
+
+	if root == nil {
+		return nil
+	}
+
+	return avgValNode
+
+}
+
+// reflection on what to improve and how to improve
+// need to get into more basic things
+// how does the data structure works, and what are there drawbacks;
+// need to focus on more basic things;
+// i think i dont know the boundry, should be able to tell if it can work
+// or if it will fail, because of the building block
+// thats where the experience and ability to visualize the problem and solutions
+// will come in place
+// like traversal methods=> bfs, dfs, recursions;
+// what goes in, and what comes out;
+// i understands, how it works and but not able to combine them to solve bigger problems
+// so basically lacking the fundementalss
+// traversal methods => dfs
+// stack, queue, linked list, maps and hash table
+// after having this solid foundations, we can then say how its fits into my solutions
+// will be able to code it out more effectively and efficiently
+// even the solution is wrong, i will be able to express my ideas into the code
+// thats why i study more in details with regards to fundamentals
+// i think i work well with primitives basics
+// but around the mid level i struggle, i guess
+
+// stack and queue implementations
+// stack, queue is the data structure
+
+// ability to understand slice(arrays) will help termendously, 
+// because under the hood, most of the complex data structure and algo, use its
+
+type stack struct {
+	// so we are using the slice
+	items []int
+}
+
+func (s *stack) Push(val int) {
+	s.items = append(s.items, val)
+}
+
+func (s *stack) Pop() (int, bool) {
+	if len(s.items) == 0 {
+		return 0, false
+	}
+
+	front := s.items[len(s.items)-1]
+	s.items = s.items[:len(s.items)-1]
+	return front, true
+}
+
+func (s *stack) IsEmpty() bool {
+	if len(s.items) == 0 {
+		return false
+	}
+	return true
+
+}
+
+// queue data types;
+
+type queue struct {
+	items []int
+}
+
+func (q *queue) enqueue(val int) {
+
+	q.items = append(q.items, val)
+
+}
+
+func (q *queue) dequeue() {
+	if q.IsEmpty() {
+		return
+	}
+	q.items = q.items[1:]
+}
+
+func (q *queue) IsEmpty() bool {
+	if len(q.items) == 0 {
+		return true
+	}
+	return false
+
+}
+
+// stack for integers
+
+func levelOrderTraversal2(root *TreeNode) {
 
 }
