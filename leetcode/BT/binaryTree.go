@@ -391,8 +391,8 @@ func averageOfLevels(root *TreeNode) []float64 {
 // stack and queue implementations
 // stack, queue is the data structure
 
-// ability to understand slice(arrays) will help termendously, 
-// because under the hood, most of the complex data structure and algo, use its
+// ability to understand slice(arrays) will help termendously,
+// because under the hood, most of the complex data structure and algo, use itsr
 
 type stack struct {
 	// so we are using the slice
@@ -445,11 +445,28 @@ func (q *queue) IsEmpty() bool {
 		return true
 	}
 	return false
-
 }
 
-// stack for integers
+// for the tree, we need understanding of the recursions
+// traversal methods and types;
+// maybe my understanding of linked list is limited;
 
+// stack for integers
 func levelOrderTraversal2(root *TreeNode) {
+	q := &Queue[*TreeNode]{}
+	q.Enqueue(root)
+	if !q.IsEmpty() {
+		root, _ := q.Dequeue()
+		if root.left != nil {
+			q.Enqueue(root.left)
+		}
+
+		if root.right != nil {
+			q.Enqueue(root.right)
+		}
+
+		fmt.Println()
+
+	}
 
 }
