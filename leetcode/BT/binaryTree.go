@@ -356,17 +356,6 @@ func mergeTrees(root1 *TreeNode, root2 *TreeNode) *TreeNode {
 
 // need to solve 4 problems today;
 
-func averageOfLevels(root *TreeNode) []float64 {
-	var avgValNode []float64
-
-	if root == nil {
-		return nil
-	}
-
-	return avgValNode
-
-}
-
 // reflection on what to improve and how to improve
 // need to get into more basic things
 // how does the data structure works, and what are there drawbacks;
@@ -470,3 +459,101 @@ func levelOrderTraversal2(root *TreeNode) {
 	}
 
 }
+
+func averageOfLevels(root *TreeNode) []float64 {
+	if root == nil {
+		return []float64{}
+	}
+
+	var averages []float64
+	queue := []*TreeNode{root}
+
+	// wanted to look for this solution;
+	for len(queue) > 0 {
+		levelSize := len(queue)
+		levelSum := 0
+
+		for i := 0; i < levelSize; i++ {
+
+			// so everything from here will depend on the context of the node
+			node := queue[0]
+			queue = queue[1:] // Dequeue front element
+
+			levelSum += node.val
+
+			if node.left != nil {
+				queue = append(queue, node.left)
+			}
+			if node.left != nil {
+				queue = append(queue, node.right)
+			}
+		}
+
+		averages = append(averages, float64(levelSum)/float64(levelSize))
+	}
+
+	return averages
+
+}
+
+func findTarget(root *TreeNode, k int) bool {
+	var vals []int
+
+	var collect func(node *TreeNode)
+	collect = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+		vals = append(vals, node.val)
+		collect(node.left)
+		collect(node.right)
+	}
+	collect(root)
+
+	for i := 0; i < len(vals); i++ {
+		for j := i + 1; j < len(vals); j++ {
+			if vals[i]+vals[j] == k {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+/**
+ * Definition for a binary tree node.
+ * type TreeNode struct {
+ *     Val int
+ *     Left *TreeNode
+ *     Right *TreeNode
+ * }
+ */
+func searchBST(root *TreeNode, val int) *TreeNode {
+	if root == nil || root.val == val {
+		return root
+	}
+
+	if val < root.val {
+		return searchBST(root.left, val)
+	}
+
+	return searchBST(root.right, val)
+}
+
+func checkTree(root *TreeNode) bool {
+	// questions?"":"";
+	// give tree has only 3 nodes, 1 root, 2 children
+	// if root.Val == root.left.val + root.right.val ?"true":"false"
+
+	if root == nil {
+		return false
+	}
+
+	sum := root.left.val + root.right.val
+	if sum == root.val {
+		return true
+	}
+	return false
+}
+
+
