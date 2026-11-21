@@ -603,3 +603,40 @@ func isCousins(root *TreeNode, x int, y int) bool {
 
 	return false
 }
+
+// to have more leverage, have to put more effort and think more
+func isSubtree(root *TreeNode, subRoot *TreeNode) bool {
+	if subRoot == nil {
+		return true
+	}
+	if root == nil {
+		return false
+	}
+
+	if isSame(root, subRoot) {
+		return true
+	}
+
+	return isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot)
+}
+
+func isSame(a, b *TreeNode) bool {
+
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil || b == nil {
+		return false
+	}
+
+	if a.val != b.val {
+		return false
+	}
+	return isSame(a.left, b.left) && isSame(a.right, b.right)
+
+}
+
+func increasingBST(root *TreeNode) *TreeNode {
+
+}
