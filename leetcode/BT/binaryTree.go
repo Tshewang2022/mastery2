@@ -638,5 +638,39 @@ func isSame(a, b *TreeNode) bool {
 }
 
 func increasingBST(root *TreeNode) *TreeNode {
+	// so this should be implemented here;
+	newNode := &TreeNode{}
+	tail := newNode
+
+	if root == nil {
+		return nil
+	}
+	var inorder func(node *TreeNode)
+	inorder = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+
+		inorder(node.left)
+		// attach node to tail, and move tail forward
+		tail.right = &TreeNode{val: node.val}
+		tail = tail.right
+
+		inorder(node.right)
+	}
+	inorder(root)
+	return newNode.right
+}
+
+func inorder2(root *TreeNode) *TreeNode {
+	if root == nil {
+		return nil
+	}
+
+	newTree := &TreeNode{val: root.val}
+	newTree.left = inorder2(root.left)
+	newTree.right = inorder2(root.right)
+
+	return newTree
 
 }
