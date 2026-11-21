@@ -556,4 +556,50 @@ func checkTree(root *TreeNode) bool {
 	return false
 }
 
+func isCousins(root *TreeNode, x int, y int) bool {
 
+	queue := []*TreeNode{root}
+
+	for len(queue) > 0 {
+		size := len(queue)
+		foundX, foundY := false, false
+
+		for i := 0; i < size; i++ {
+			node := queue[0]
+			queue = queue[1:]
+
+			// Same parent => siblings, not cousins
+			if node.left != nil && node.right != nil {
+				l, r := node.left.val, node.right.val
+				if (l == x && r == y) || (l == y && r == x) {
+					return false
+				}
+			}
+
+			if node.val == x {
+				foundX = true
+			}
+			if node.val == y {
+				foundY = true
+			}
+
+			if node.left != nil {
+				queue = append(queue, node.left)
+			}
+			if node.right != nil {
+				queue = append(queue, node.right)
+			}
+		}
+
+		// Both found on the same level (and not siblings)
+		if foundX && foundY {
+			return true
+		}
+		// Only one found on this level => different depths
+		if foundX || foundY {
+			return false
+		}
+	}
+
+	return false
+}
