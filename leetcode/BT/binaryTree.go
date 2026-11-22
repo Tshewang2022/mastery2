@@ -676,36 +676,32 @@ func inorder2(root *TreeNode) *TreeNode {
 }
 
 func rangeSumBST(root *TreeNode, low int, high int) int {
-	sum := 0
 
-	queue := []*TreeNode{root}
-
-	for len(queue) > 0 {
-		size := len(queue)
-		foundX, foundY := false, false
-		for i := 0; i < size; i++ {
-			node := queue[0]
-			queue = queue[1:]
-
-			// Same parent => siblings, not cousins
-
-			if node.val == low {
-				foundX = true
-			}
-
-			if node.val == high {
-				foundY = true
-			}
-
-			if node.left != nil {
-				queue = append(queue, node.left)
-			}
-			if node.right != nil {
-				queue = append(queue, node.right)
-			}
-
-		}
+	if root == nil {
+		return 0
 	}
 
-	return sum
+	if root.val < low {
+		return rangeSumBST(root.right, low, high)
+	}
+
+	if root.val > high {
+		return rangeSumBST(root.left, low, high)
+	}
+
+	return root.val + rangeSumBST(root.left, low, high) + rangeSumBST(root.right, low, high)
+}
+
+func findSecondMinimumValue(root *TreeNode) int {
+	if root == nil {
+		return 0
+	}
+
+	smallest := root.val
+	var secondHighest int
+
+	
+	findSecondMinimumValue(root.left)
+	findSecondMinimumValue(root.right)
+	return secondHighest
 }
