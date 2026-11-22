@@ -831,11 +831,6 @@ func findSecondMinimumValue2(root *TreeNode) int {
 // 	// if all the node.val same, return true, if not false
 // }
 
-// func minDiffInBST(root *TreeNode) int {
-// 	// return only the min diff between the node
-
-// }
-
 func leafSimilar2(root1 *TreeNode, root2 *TreeNode) bool {
 	var leaves []int
 
@@ -872,4 +867,27 @@ func leafSimilar2(root1 *TreeNode, root2 *TreeNode) bool {
 	}
 
 	return true
+}
+
+func minDiffInBST(root *TreeNode) int {
+	// return only the min diff between the node
+	var minDiff int
+
+	var prev *TreeNode
+
+	// this is wrong, because
+	var dfs func(node *TreeNode)
+	dfs = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+		dfs(node.left)
+		if node.left != nil {
+			minDiff = node.val - node.left.val
+		}
+
+		dfs(node.right)
+
+	}
+
 }
