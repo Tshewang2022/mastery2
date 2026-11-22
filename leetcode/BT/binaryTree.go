@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 )
 
@@ -827,10 +828,6 @@ func findSecondMinimumValue2(root *TreeNode) int {
 
 // }
 
-// func isUnivalTree(root *TreeNode) bool {
-// 	// if all the node.val same, return true, if not false
-// }
-
 func leafSimilar2(root1 *TreeNode, root2 *TreeNode) bool {
 	var leaves []int
 
@@ -871,7 +868,7 @@ func leafSimilar2(root1 *TreeNode, root2 *TreeNode) bool {
 
 func minDiffInBST(root *TreeNode) int {
 	// return only the min diff between the node
-	var minDiff int
+	minDiff := math.MaxInt
 
 	var prev *TreeNode
 
@@ -882,12 +879,34 @@ func minDiffInBST(root *TreeNode) int {
 			return
 		}
 		dfs(node.left)
-		if node.left != nil {
-			minDiff = node.val - node.left.val
+		if prev != nil {
+			diff := node.val - prev.val
+			if diff < minDiff {
+				minDiff = diff
+			}
 		}
 
 		dfs(node.right)
+	}
+	return minDiff
+}
 
+func isUnivalTree(root *TreeNode) bool {
+	// if all the node.val same, return true, if not false
+	if root == nil {
+		return false
+	}
+	val := root.val
+	var preorder func(node *TreeNode) bool
+	preorder = func(node *TreeNode) bool {
+		if node == nil {
+			return true
+		}
+		if node.val != val {
+			return false
+		}
+		return preorder(node.left) && preorder(node.right)
 	}
 
+	return preorder(root)
 }
