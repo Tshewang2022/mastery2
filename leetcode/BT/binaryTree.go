@@ -692,16 +692,61 @@ func rangeSumBST(root *TreeNode, low int, high int) int {
 	return root.val + rangeSumBST(root.left, low, high) + rangeSumBST(root.right, low, high)
 }
 
+// why find out why this is wrong and wont work, and will dry this code;
+
+// this is the first try, havent dry run this code, and obiviously
+// func findSecondMinimumValue(root *TreeNode) int {
+// 	if root == nil {
+// 		return 0
+// 	}
+
+// 	smallest := root.val
+// 	secondHighest := root.val
+
+// 	if smallest == root.val {
+// 		smallest = findSecondMinimumValue(root.left)
+// 	}
+// 	// so how can we find the second smallest
+// 	// this should be modified;
+// 	// so this condition will execute only for the first time
+// 	if smallest == secondHighest && smallest < root.left.val {
+// 		secondHighest = root.left.val
+// 	}
+// 	if smallest == secondHighest && smallest < root.right.val {
+// 		secondHighest = root.right.val
+// 	}
+
+// 	if secondHighest < root.val && smallest < secondHighest {
+// 		secondHighest = root.val
+// 	}
+
+// 	findSecondMinimumValue(root.left)
+// 	findSecondMinimumValue(root.right)
+// 	return secondHighest
+// }
+
 func findSecondMinimumValue(root *TreeNode) int {
-	if root == nil {
-		return 0
+	if root == nil && root.left == nil {
+		return -1
 	}
 
-	smallest := root.val
-	var secondHighest int
+	left, right := root.left.val, root.right.val
 
-	
-	findSecondMinimumValue(root.left)
-	findSecondMinimumValue(root.right)
-	return secondHighest
+	if left == root.val {
+		left = findSecondMinimumValue(root.left)
+	}
+
+	if right == root.val {
+		right = findSecondMinimumValue(root.right)
+	}
+
+	if left != -1 && right != -1 {
+		return min(left, right)
+	}
+
+	if left != -1 {
+		return left
+	}
+
+	return right
 }
