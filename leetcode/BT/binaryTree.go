@@ -750,3 +750,126 @@ func findSecondMinimumValue(root *TreeNode) int {
 
 	return right
 }
+
+func findSecondMinimumValue2(root *TreeNode) int {
+
+	if root == nil {
+		return -1
+	}
+
+	// smallest
+	min := root.val // this approach i got correct
+
+	// second smallest
+
+	second := -1
+
+	// for this i got around 90 percent correct, but messed up few cases;
+	var dfs func(node *TreeNode)
+	dfs = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+
+		if node.val > min {
+			if second == -1 || node.val < second {
+				second = node.val
+			}
+			return
+		}
+		dfs(root.left)
+		dfs(root.right)
+	}
+	dfs(root)
+	return second
+
+}
+
+// wrong solutions;
+// func leafSimilar(root1 *TreeNode, root2 *TreeNode) bool {
+
+// 	// compare the tree leave of root1 and root2, is same, true, if not false
+// 	if root1 == nil && root2 == nil {
+// 		// it does not have a leave;
+// 		return false
+// 	}
+
+// 	// the common concepts; compares
+// 	var queue1 []int
+// 	var quque2 []int
+
+// 	// first sign required nested function
+// 	if root1.left == nil {
+// 		queue1 = append(queue1, root1.val)
+// 	}
+
+// 	if root1.right == nil {
+// 		queue1 = append(queue1, root1.val)
+// 	}
+
+// 	if root2.left == nil {
+// 		quque2 = append(quque2, root2.val)
+// 	}
+
+// 	if root2.right == nil {
+// 		quque2 = append(quque2, root2.val)
+// 	}
+
+// 	left := leafSimilar(root1.left, root2.left) // what will this return
+// 	right := leafSimilar(root1.right, root2.right)
+
+// 	// second is here, cannot compare out the recursion
+// 	if left == right {
+// 		return true
+// 	}
+
+// 	return false
+
+// }
+
+// func isUnivalTree(root *TreeNode) bool {
+// 	// if all the node.val same, return true, if not false
+// }
+
+// func minDiffInBST(root *TreeNode) int {
+// 	// return only the min diff between the node
+
+// }
+
+func leafSimilar2(root1 *TreeNode, root2 *TreeNode) bool {
+	var leaves []int
+
+	var collect func(node *TreeNode)
+	collect = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+
+		if node.left == nil && node.right == nil {
+			leaves = append(leaves, node.val)
+			return
+		}
+		collect(node.left)
+		collect(node.right)
+	}
+
+	collect(root1) // this will be written inside the var leaves1 []int
+	leaves1 := leaves
+
+	leaves = nil
+	collect(root2)
+
+	leaves2 := leaves
+
+	if len(leaves1) != len(leaves2) {
+		return false
+	}
+
+	for i := range leaves1 {
+		if leaves1[i] != leaves2[i] {
+			return false
+		}
+	}
+
+	return true
+}
