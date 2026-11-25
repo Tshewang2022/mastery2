@@ -127,61 +127,62 @@ func postorder(n *Node) {
 	postorder(n.right)
 	fmt.Print(n.val, " ")
 }
-func main() {
-	// tree := &Head{}
-	// tree.binaryTree(9)
-	// tree.binaryTree(56)
-	// tree.binaryTree(4)
-	// // tree.insertNode(9)
-	// preorder(tree.root)
-	// // inorder(tree.root)
-	// // postorder(tree.root)
-	// // tree.insertNode(90)
-	// // tree.printNode()
-	// fmt.Println()
 
-	// ---- isBalanced checks ----
+// func main() {
+// 	// tree := &Head{}
+// 	// tree.binaryTree(9)
+// 	// tree.binaryTree(56)
+// 	// tree.binaryTree(4)
+// 	// // tree.insertNode(9)
+// 	// preorder(tree.root)
+// 	// // inorder(tree.root)
+// 	// // postorder(tree.root)
+// 	// // tree.insertNode(90)
+// 	// // tree.printNode()
+// 	// fmt.Println()
 
-	//     2
-	//    / \
-	//   1   3
-	// balanced := &TreeNode{val: 2,
-	// 	left:  &TreeNode{val: 1},
-	// 	right: &TreeNode{val: 3},
-	// }
+// 	// ---- isBalanced checks ----
 
-	//   1
-	//    \
-	//     2
-	//      \
-	//       3
-	// skewed := &TreeNode{val: 1,
-	// 	right: &TreeNode{val: 2,
-	// 		right: &TreeNode{val: 3},
-	// 	},
-	// }
+// 	//     2
+// 	//    / \
+// 	//   1   3
+// 	// balanced := &TreeNode{val: 2,
+// 	// 	left:  &TreeNode{val: 1},
+// 	// 	right: &TreeNode{val: 3},
+// 	// }
 
-	// root looks fine (height 3 vs 3), but each side is a chain
-	//         1
-	//        / \
-	//       2   5
-	//      /     \
-	//     3       6
-	//    /         \
-	//   4           7
+// 	//   1
+// 	//    \
+// 	//     2
+// 	//      \
+// 	//       3
+// 	// skewed := &TreeNode{val: 1,
+// 	// 	right: &TreeNode{val: 2,
+// 	// 		right: &TreeNode{val: 3},
+// 	// 	},
+// 	// }
 
-	// fmt.Println("balanced:", isBalanced(balanced)) // true
-	// fmt.Println("sweked:", isBalanced(skewed))
-	root := &TreeNode{val: 1}
-	root.left = &TreeNode{val: 2}
-	root.right = &TreeNode{val: 3}
-	root.left.left = &TreeNode{val: 4}
-	root.left.right = &TreeNode{val: 5}
-	root.right.right = &TreeNode{val: 6}
+// 	// root looks fine (height 3 vs 3), but each side is a chain
+// 	//         1
+// 	//        / \
+// 	//       2   5
+// 	//      /     \
+// 	//     3       6
+// 	//    /         \
+// 	//   4           7
 
-	levelOrderTraversal(root) // 1 2 3 4 5 6
+// 	// fmt.Println("balanced:", isBalanced(balanced)) // true
+// 	// fmt.Println("sweked:", isBalanced(skewed))
+// 	root := &TreeNode{val: 1}
+// 	root.left = &TreeNode{val: 2}
+// 	root.right = &TreeNode{val: 3}
+// 	root.left.left = &TreeNode{val: 4}
+// 	root.left.right = &TreeNode{val: 5}
+// 	root.right.right = &TreeNode{val: 6}
 
-}
+// 	levelOrderTraversal(root) // 1 2 3 4 5 6
+
+// }
 
 // needs to get down really to the fundemental property
 // how does the args passing methods works and how does the conditions executed
