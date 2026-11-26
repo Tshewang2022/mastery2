@@ -87,21 +87,36 @@ func count(nodes int, memo []int) int {
 }
 
 func isValidBST(root *TreeNode) bool {
-	// check if this is valid binary tree
+	// can be implemented both using queue and stack
 
-	// vaild bst, if root.left.val<root.val> root.right.val
-	// if root.left.val < root.val && root.val < root.right.val {
-	// 	return true
-	// }else {
-	// 	return false
-	// }
+	stack := []*TreeNode{}
+	var prev *int
+	curr := root
 
-	qeueu := []*TreeNode{root}
+	for curr != nil || len(stack) > 0 {
+		for curr != nil {
+			stack = append(stack, curr)
+			curr = curr.left
+		}
 
-	if len(qeueu) > 0 {
-		// perform the operations;
-		// stick to what you know solution, when trying to construct the solutions;
-		
+		curr = stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+
+		if prev != nil && curr.val <= *prev {
+			return false
+		}
+
+		prev = &curr.val
+		curr = curr.right
 	}
+
+	return true
+
+}
+
+// how to make every minute count
+func recoverTree(root *TreeNode) {
+	// values of exactly two nodes of the tree were swapped by mistake, recover the tree without
+	// changing its structure
 
 }

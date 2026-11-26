@@ -11,8 +11,6 @@ type queues struct {
 	items *[]int
 }
 
-
-
 func basics() {
 
 	// array=> slice,
