@@ -47,3 +47,6 @@ func newUser(name string) *User {
 // dont guess. User the tooling
 
 // wow, such a insights in a small video
+
+// okay now i have the better understanding of how does the stack and heap works
+

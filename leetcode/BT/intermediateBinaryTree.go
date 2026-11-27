@@ -115,6 +115,7 @@ func isValidBST(root *TreeNode) bool {
 }
 
 // how to make every minute count
+// what it takes be a champion and winner
 func recoverTree(root *TreeNode) {
 	// values of exactly two nodes of the tree were swapped by mistake, recover the tree without
 	// changing its structure
