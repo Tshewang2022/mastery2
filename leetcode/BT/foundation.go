@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -12,14 +11,6 @@ type stacks struct {
 
 type queues struct {
 	items *[]int
-}
-
-func basics() {
-
-	// array=> slice,
-	// queue, stack, linked list
-
-	fmt.Println("hello golango")
 }
 
 // at very basic level computer programming is just
@@ -131,4 +122,39 @@ func (root *HeadNode) insertAtParticularPosition(pos, newVal int) bool {
 	newNode.Next = curr.Next
 	curr.Next = newNode
 	return true
+}
+
+// deleting the node
+
+func (root *HeadNode) deleteAtParticularPosition(pos int) bool {
+
+	if pos < 0 {
+		return false
+	}
+
+	// head node
+	if pos == 0 {
+		root.Head = root.Head.Next
+		return true
+	}
+
+	// middle node
+	// travel through the node
+	curr := root.Head
+	index := 0
+
+	for curr != nil && index < pos-1 {
+		curr = curr.Next
+		index++
+	}
+
+	if curr == nil || curr.Next == nil {
+		return false
+	}
+
+	curr = curr.Next.Next
+	return true
+
+	// tail node
+
 }
